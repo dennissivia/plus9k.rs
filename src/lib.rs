@@ -18,9 +18,15 @@ struct Issue {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+struct Repository {
+  full_name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 struct Payload {
   action: String,
   issue: Issue,
+  repository: Repository,
   comment: Comment,
 }
 
@@ -51,34 +57,40 @@ fn read_payload(path: String) -> std::io::Result<String> {
   return Ok(contents);
 }
 
-fn is_plus_one(comment: String) -> bool {
+fn is_plus_one(comment: &str) -> bool {
   comment == "+1"
 }
 
-fn already_responsed(issue_id: usize) -> bool {
+// TODO make API request to get recent comments and check for bot comments to de-noise
+// Not a V1 feature
+fn already_responsed(_issue_id: usize) -> bool {
   false
 }
 
 fn should_reply(payload: &Payload) -> bool {
-  is_plus_one(payload.comment.body.clone()) || already_responsed(payload.issue.id)
+  is_plus_one(&payload.comment.body) || already_responsed(payload.issue.id)
 }
 
 fn reply(
   token: String,
   issue_id: &usize,
+  repo_name: &String,
   message: String,
 ) -> Result<String, serde_json::error::Error> {
-  //reqwest::Result<reqwest::Response> {
-
   let new_comment = CreateComment { body: message };
   let json = serde_json::to_string(&new_comment)?;
 
   let client = reqwest::Client::new();
+  let url: String = format!(
+    "https://api.github.com/repos/{}/issues/{}/comments",
+    repo_name, issue_id
+  );
+
   let res = client
-    .post("https://api.github.com/repos/:owner/:repo/issues/:issue_number/comments")
-    .header(USER_AGENT, "foo")
+    .post(&url[..])
+    .header(USER_AGENT, "Plus9k GitHub Action")
     .header(CONTENT_TYPE, "application/vnd.github.antiope-preview+json")
-    .header(AUTHORIZATION, "bearer -insert-valid-token-")
+    .header(AUTHORIZATION, String::from(format!("bearer {}", token)))
     .json(&json)
     .send();
 
@@ -101,7 +113,12 @@ pub fn run(token: String, path: String, maybe_message: Option<String>) -> std::i
   let payload: Payload = serde_json::from_str(&contents)?;
   println!("payload: {:?}", payload);
   if should_reply(&payload) {
-    reply(token, &payload.issue.id, message);
+    reply(
+      token,
+      &payload.issue.id,
+      &payload.repository.full_name,
+      message,
+    );
   }
 
   Ok(())
