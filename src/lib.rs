@@ -57,6 +57,10 @@ fn read_payload(path: String) -> std::io::Result<String> {
   return Ok(contents);
 }
 
+// TODO add more rules like:
+// * +1 and at most 4 characters
+// * also need
+// * +1!
 fn is_plus_one(comment: &str) -> bool {
   comment == "+1"
 }
