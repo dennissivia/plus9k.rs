@@ -1,0 +1,21 @@
+# FROM alpine:3.10.2
+FROM rust:1.37.0-slim
+
+
+
+# suggested here: https://github.com/sfackler/rust-openssl/issues/766 but doesn't work
+# I am re-installing libssl-dev instead (see below)
+# ENV OPENSSL_DIR='/usr/lib/x86_64-linux-gnu'
+# ENV OPENSSL_LIB_DIR='/usr/lib/x86_64-linux-gnu/lib'
+# ENV OPENSSL_LIB_DIR='/usr/lib/x86_64-linux-gnu'
+
+RUN apt-get -y upgrade && apt-get -y update
+RUN apt-get install -y libssl-dev pkg-config
+
+COPY . app/
+
+RUN cd app && cargo build --release
+RUN mv app/target/release/plus9k .
+RUN rm -rf app/
+
+ENTRYPOINT ["/plus9k"]
