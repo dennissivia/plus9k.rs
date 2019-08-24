@@ -1,0 +1,30 @@
+name: GitHub CI
+
+on:
+  push:
+    tags:
+      - "!*"
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    name: Build, test and containerize
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build app
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose
+      - name: Remove compile artifacts
+        run: cargo clean
+      - name: Docker - GPR login
+        env:
+          GPR_USER: scepticulous
+          GPR_TOKEN: ${{ secrets.GPR_TOKEN }}
+        run: docker login docker.pkg.github.com -u "${GPR_USER}" -p "${GPR_TOKEN}"
+      - name: Docker - build image
+        run: docker build -t plus9k:hash-${GITHUB_SHA} -f Dockerfile.release .
+      - name: Docker - tag image
+        run: docker tag plus9k:hash-${GITHUB_SHA} docker.pkg.github.com/${GITHUB_REPOSITORY}/plus9k-rust:hash-${GITHUB_SHA}
+      - name: Docker - push image
+        run: docker push docker.pkg.github.com/${GITHUB_REPOSITORY}/plus9k-rust:hash-${GITHUB_SHA}
