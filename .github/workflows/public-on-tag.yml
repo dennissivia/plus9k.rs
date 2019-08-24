@@ -1,6 +1,8 @@
 name: Rust
 
-on: [release]
+# create ref_type: tag
+# https://developer.github.com/v3/activity/events/types/#createevent
+on: [create]
 
 jobs:
   build:
