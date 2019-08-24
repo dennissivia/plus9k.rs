@@ -15,4 +15,8 @@ jobs:
     - name: Run tests
       run: cargo test
     - name: build and push docker image
-      run: /scripts/publish-docker-image.bash
+      run: |
+        - echo $PWD
+        - ls 
+        - find /
+        - /scripts/publish-docker-image.bash
