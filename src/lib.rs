@@ -51,6 +51,7 @@ fn get_message(maybe_message: Option<String>) -> String {
 }
 
 fn read_payload(path: String) -> std::io::Result<String> {
+  println!("opening file: {}", path);
   let mut file = File::open(path)?;
   let mut contents = String::new();
   file.read_to_string(&mut contents)?;
