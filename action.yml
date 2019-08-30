@@ -1,0 +1,13 @@
+name: "Plus9k"
+description: "Responds to +1 comments in issues"
+author: "Dennis Sivia - https://github.com/scepticulous"
+branding:
+  icon: 'thumbs-up'
+  color: 'green'
+inputs:
+  message:
+    description: "The message the bot should reply with"
+    required: false
+runs:
+  using: "docker"
+  image:  "scepticulous/plus9k"
