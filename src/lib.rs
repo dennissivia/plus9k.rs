@@ -110,21 +110,22 @@ fn reply(
   Ok(String::from("Success"))
 }
 
-pub fn run(token: String, path: String, maybe_message: Option<String>) -> std::io::Result<()> {
+pub fn run(token: String, path: String, maybe_message: Option<String>) -> Option<String> {
   let message = get_message(maybe_message);
   println!("message: {:?}", message);
-  let contents = read_payload(path)?;
+  let contents = read_payload(path).ok()?;
   // println!("{:?}",contents);
-  let payload: Payload = serde_json::from_str(&contents)?;
+  let payload: Payload = serde_json::from_str(&contents).ok()?;
   println!("payload: {:?}", payload);
   if should_reply(&payload) {
-    reply(
+    let response = reply(
       token,
       &payload.issue.id,
       &payload.repository.full_name,
       message,
     );
+    response.ok()
+  } else {
+    Some(String::from("Comment seems legit."))
   }
-
-  Ok(())
 }

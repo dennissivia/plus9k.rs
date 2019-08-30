@@ -2,11 +2,11 @@
 use plus9k;
 use std::env;
 
-fn main() -> std::io::Result<()> {
-    let path = env::var("INPUT_EVENT_PATH").expect("INPUT_EVENT_PATH is required");
+fn main() {
+    let path = env::var("GITHUB_EVENT_PATH").expect("GITHUB_EVENT_PATH is required");
     let token = env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN is required");
     // optional, fine to have none
-    let maybe_message = env::var("INPUT_MESSAGE").ok();
+    let maybe_message = env::var("MESSAGE").ok();
 
-    plus9k::run(token, path, maybe_message)
+    plus9k::run(token, path, maybe_message);
 }
