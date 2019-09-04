@@ -1,7 +1,7 @@
 FROM rust:1.37.0-slim AS builder
 
 RUN apt-get -y upgrade && apt-get -y update
-RUN apt-get install -y pkg-config musl-dev musl-tools curl sudo build-essential
+RUN apt-get install -y pkg-config ca-certificates musl-dev musl-tools curl sudo build-essential
 
 # The OpenSSL version to use.
 ARG OPENSSL_VERSION=1.0.2s
@@ -42,6 +42,7 @@ RUN cargo clean && cargo build --release --target=x86_64-unknown-linux-musl
 RUN strip /app/target/x86_64-unknown-linux-musl/release/plus9k
 
 FROM scratch
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/plus9k .
 
 VOLUME ["/data"]

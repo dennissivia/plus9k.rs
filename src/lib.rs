@@ -4,6 +4,13 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::prelude::*;
 
+const DEFAULT_MESSAGE : &str = r#"
+Thanks for supporting this discussion by sharing your opinion. ❤️
+Did you know? Dedicated +1-comments can make it hard to follow the discussion.
+Sharing your support via emoji reactions on comments avoids that problem and helps us get a complete picture of everybody's opinion.
+Make sure to use a reaction next time to upvote an idea.
+}"#;
+
 #[derive(Serialize, Deserialize, Debug)]
 struct Comment {
     body: String,
@@ -13,6 +20,7 @@ struct Comment {
 #[derive(Serialize, Deserialize, Debug)]
 struct Issue {
     id: usize,
+    number: usize,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -28,31 +36,29 @@ struct Payload {
     comment: Comment,
 }
 
-/// https://developer.github.com/v3/issues/comments/#create-a-comment
+fn default_message() -> String {
+    String::from(DEFAULT_MESSAGE)
+}
+
+/// struct representing the payload for creating comments
+/// See https://developer.github.com/v3/issues/comments/#create-a-comment
 #[derive(Serialize, Deserialize, Debug)]
 struct CreateComment {
     body: String,
 }
 
-fn default_message() -> String {
-    let message = r#"
-   This is some amazing message
-        }"#;
-    String::from(message)
-}
-
 fn get_message(maybe_message: Option<String>) -> String {
-    maybe_message.map_or(default_message(), |message| {
-        if message.is_empty() {
+    maybe_message.map_or(default_message(), |text| {
+        if text.is_empty() {
             default_message()
         } else {
-            message
+            text
         }
     })
 }
 
 fn read_payload(path: String) -> std::io::Result<String> {
-    println!("opening file: {}", path);
+    println!("opening event payload file: {}", path);
     let mut file = File::open(path)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
@@ -69,35 +75,34 @@ fn is_plus_one(comment: &str) -> bool {
 
 // TODO make API request to get recent comments and check for bot comments to de-noise
 // Not a V1 feature
-fn already_responsed(_issue_id: usize) -> bool {
+fn already_responded(_issue_number: usize) -> bool {
     false
 }
 
 fn should_reply(payload: &Payload) -> bool {
-    is_plus_one(&payload.comment.body) || already_responsed(payload.issue.id)
+    is_plus_one(&payload.comment.body) || already_responded(payload.issue.id)
 }
 
 fn reply(
     token: String,
-    issue_id: &usize,
+    issue_number: &usize,
     repo_name: &String,
     message: String,
 ) -> Result<String, serde_json::error::Error> {
     let new_comment = CreateComment { body: message };
-    let json = serde_json::to_string(&new_comment)?;
 
     let client = reqwest::Client::new();
     let url: String = format!(
         "https://api.github.com/repos/{}/issues/{}/comments",
-        repo_name, issue_id
+        repo_name, issue_number
     );
 
     let res = client
         .post(&url[..])
         .header(USER_AGENT, "Plus9k GitHub Action")
         .header(CONTENT_TYPE, "application/vnd.github.antiope-preview+json")
-        .header(AUTHORIZATION, String::from(format!("bearer {}", token)))
-        .json(&json)
+        .header(AUTHORIZATION, String::from(format!("token {}", token)))
+        .json(&new_comment)
         .send();
 
     match res {
@@ -113,15 +118,15 @@ fn reply(
 
 pub fn run(token: String, path: String, maybe_message: Option<String>) -> Option<String> {
     let message = get_message(maybe_message);
-    println!("message: {:?}", message);
+
     let contents = read_payload(path).ok()?;
-    // println!("{:?}",contents);
     let payload: Payload = serde_json::from_str(&contents).ok()?;
-    println!("payload: {:?}", payload);
+
+    // println!("payload: {:?}", payload);
     if should_reply(&payload) {
         let response = reply(
             token,
-            &payload.issue.id,
+            &payload.issue.number,
             &payload.repository.full_name,
             message,
         );
