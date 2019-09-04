@@ -8,8 +8,7 @@ const DEFAULT_MESSAGE : &str = r#"
 Thanks for supporting this discussion by sharing your opinion. ❤️
 Did you know? Dedicated +1-comments can make it hard to follow the discussion.
 Sharing your support via emoji reactions on comments avoids that problem and helps us get a complete picture of everybody's opinion.
-Make sure to use a reaction next time to upvote an idea.
-}"#;
+Make sure to use a reaction next time to upvote an idea."#;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Comment {
