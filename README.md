@@ -27,14 +27,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           MESSAGE: "Please do not use +1 comments :slightly_frowning_face:"
-        uses: docker://scepticulous/plus9
+        uses: docker://scepticulous/plus9:v1.0.0
 ```
 
 ## Input
 
 * `GITHUB_TOKEN`-env-var is required
 * `GITHUB_EVENT_PATH`-env-var is automatically used behind the scenes
-* `MESSAGE`-input is optional, the default is provided [here](/data/default-message.txt).
 
 ### Message
 
@@ -43,7 +42,7 @@ The default message is:
 Thanks for supporting this discussion by sharing your opinion. ❤️
 Did you know? Dedicated +1-comments can make it hard to follow the discussion.
 
-Sharing your support via emoji reactions on comments avoids that problem 
+Sharing your support via emoji reactions on comments avoids that problem
 and helps us get a complete picture of everybody's opinion.
 Make sure to use a reaction next time to upvote an idea.
 ```
