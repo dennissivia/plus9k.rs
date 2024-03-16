@@ -1,7 +1,7 @@
 [package]
 name = "plus9k"
 version = "0.1.0"
-authors = ["Dennis Sivia <dennis.sivia@gmail.com>"]
+authors = ["Dennis Sivia <dev@d-coded.de>"]
 edition = "2018"
 
 [dependencies]
